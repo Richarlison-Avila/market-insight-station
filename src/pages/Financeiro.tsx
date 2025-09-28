@@ -1,8 +1,19 @@
-import { DollarSign, TrendingUp, TrendingDown, CreditCard, AlertCircle } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, CreditCard, AlertCircle, Plus, Pencil, Save, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
 import { SalesChart } from "@/components/charts/SalesChart";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ExpenseRow } from "@/components/ui/expense-row";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -11,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useState } from "react";
 
 // Mock data - substituir por dados da API
 const financialData = [
@@ -50,6 +62,8 @@ const expenses = [
   },
 ];
 
+const initialExpenses = [...expenses];
+
 const pendingPayments = [
   {
     id: 1,
@@ -75,10 +89,44 @@ const pendingPayments = [
 ];
 
 export default function Financeiro() {
+  const [expenses, setExpenses] = useState(initialExpenses);
+  const [editingExpense, setEditingExpense] = useState<number | null>(null);
+  const [isAddingExpense, setIsAddingExpense] = useState(false);
+  const [newExpense, setNewExpense] = useState({
+    description: "",
+    category: "",
+    amount: 0,
+    date: new Date().toISOString().split('T')[0]
+  });
+
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const totalPending = pendingPayments.reduce((sum, payment) => sum + payment.amount, 0);
   const currentBalance = 18540.75;
   const netProfit = currentBalance - totalExpenses;
+
+  const handleSaveExpense = (expense: any) => {
+    if (editingExpense) {
+      setExpenses(expenses.map(e => e.id === editingExpense ? expense : e));
+      setEditingExpense(null);
+    }
+  };
+
+  const handleAddExpense = () => {
+    const newId = Math.max(...expenses.map(e => e.id)) + 1;
+    const expenseToAdd = {
+      id: newId,
+      ...newExpense,
+      status: "Pendente"
+    };
+    setExpenses([...expenses, expenseToAdd]);
+    setNewExpense({
+      description: "",
+      category: "",
+      amount: 0,
+      date: new Date().toISOString().split('T')[0]
+    });
+    setIsAddingExpense(false);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -190,7 +238,70 @@ export default function Financeiro() {
         {/* Expenses */}
         <Card className="bg-gradient-card border-border">
           <CardHeader>
-            <CardTitle>Gastos Recentes</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Gastos Recentes</CardTitle>
+              <Dialog open={isAddingExpense} onOpenChange={setIsAddingExpense}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar Gasto
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Novo Gasto</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="description">Descrição</Label>
+                      <Input
+                        id="description"
+                        value={newExpense.description}
+                        onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
+                        placeholder="Ex: Anúncios Google Ads"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category">Categoria</Label>
+                      <Input
+                        id="category"
+                        value={newExpense.category}
+                        onChange={(e) => setNewExpense({...newExpense, category: e.target.value})}
+                        placeholder="Ex: Marketing"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount">Valor</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        step="0.01"
+                        value={newExpense.amount}
+                        onChange={(e) => setNewExpense({...newExpense, amount: parseFloat(e.target.value) || 0})}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="date">Data</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={newExpense.date}
+                        onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleAddExpense} className="flex-1">
+                        Adicionar
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsAddingExpense(false)}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -201,34 +312,19 @@ export default function Financeiro() {
                     <TableHead>Categoria</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {expenses.map((expense) => (
-                    <TableRow key={expense.id} className="hover:bg-muted/50">
-                      <TableCell>
-                        <div className="font-medium text-foreground">
-                          {expense.description}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {expense.date}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <Badge variant="outline">{expense.category}</Badge>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <span className="font-medium text-destructive">
-                          -R$ {expense.amount.toFixed(2)}
-                        </span>
-                      </TableCell>
-                      
-                      <TableCell>
-                        {getStatusBadge(expense.status)}
-                      </TableCell>
-                    </TableRow>
+                    <ExpenseRow 
+                      key={expense.id}
+                      expense={expense}
+                      isEditing={editingExpense === expense.id}
+                      onEdit={() => setEditingExpense(expense.id)}
+                      onSave={handleSaveExpense}
+                      onCancel={() => setEditingExpense(null)}
+                    />
                   ))}
                 </TableBody>
               </Table>

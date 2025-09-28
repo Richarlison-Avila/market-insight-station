@@ -26,6 +26,7 @@ const salesHistory = [
     id: 1,
     date: "2024-01-07 14:32",
     product: "Smartwatch Fitness Pro",
+    niche: "Fitness & Saúde",
     customer: "João S.",
     value: 299.90,
     commission: 46.48,
@@ -35,6 +36,7 @@ const salesHistory = [
     id: 2,
     date: "2024-01-07 11:15",
     product: "Kit Skincare Premium",
+    niche: "Cuidados Faciais",
     customer: "Maria L.",
     value: 189.50,
     commission: 41.69,
@@ -44,6 +46,7 @@ const salesHistory = [
     id: 3,
     date: "2024-01-06 16:45",
     product: "Curso Marketing Digital",
+    niche: "Marketing Online",
     customer: "Carlos M.",
     value: 497.00,
     commission: 198.80,
@@ -53,6 +56,7 @@ const salesHistory = [
     id: 4,
     date: "2024-01-06 09:22",
     product: "Suplemento Whey Protein",
+    niche: "Alimentação Saudável",
     customer: "Ana P.",
     value: 159.90,
     commission: 28.78,
@@ -62,6 +66,7 @@ const salesHistory = [
     id: 5,
     date: "2024-01-05 20:10",
     product: "Tênis Esportivo Pro",
+    niche: "Corrida & Atletismo",
     customer: "Pedro R.",
     value: 249.90,
     commission: 31.24,
@@ -197,6 +202,7 @@ export default function Vendas() {
                 <TableRow>
                   <TableHead>Data/Hora</TableHead>
                   <TableHead>Produto</TableHead>
+                  <TableHead>Nicho</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Comissão</TableHead>
@@ -214,6 +220,12 @@ export default function Vendas() {
                       <div className="font-medium text-foreground max-w-xs">
                         {sale.product}
                       </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {sale.niche}
+                      </Badge>
                     </TableCell>
                     
                     <TableCell className="text-muted-foreground">
